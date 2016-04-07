@@ -18,6 +18,5 @@
   "homepage": "https://github.com/nxtlvlgg/loopback-scope-mixin#readme",
   "mixinName": "Scope",
   "dependencies": {
-    "async": "^2.0.0-rc.2"
   }
 }

@@ -1,4 +1,3 @@
-var async = require("async");
 
 var DEFAULT_MAX_LIMIT = 100;
 var ADMIN_MAX_LIMIT = 1000;
@@ -9,32 +8,28 @@ module.exports = function(Model) {
 
     // Add scope to model depending on user
     Model.beforeRemote("find", function(ctx, unused, next) {
-        async.series([
-            addMaxScope(Model, ctx)
-        ], next);
+        return addMaxScope(Model, ctx, next);
     });
 };
 
 
 
-function addMaxScope(Model, ctx) {
-    return function(finalCb) {
+function addMaxScope(Model, ctx, finalCb) {
 
-        // If the user is not logged in, apply default limit
-        if(!ctx.req || !ctx.req.accessToken) {
-            applyLimit(ctx, DEFAULT_MAX_LIMIT);
-            return finalCb();
-        }
-
-        // Check if this user is an admin
-        var User = Model.app.models.user;
-        User.isInRoles(ctx.req.accessToken.userId.toString(), ["$admin"], ctx.req, function (err, isInRoles) {
-            if (err) return finalCb(err);
-            else if (isInRoles.none) applyLimit(ctx, DEFAULT_MAX_LIMIT);
-            else applyLimit(ctx, ADMIN_MAX_LIMIT);
-            return finalCb();
-        });
+    // If the user is not logged in, apply default limit
+    if(!ctx.req || !ctx.req.accessToken) {
+        applyLimit(ctx, DEFAULT_MAX_LIMIT);
+        return finalCb();
     }
+
+    // Check if this user is an admin
+    var User = Model.app.models.user;
+    User.isInRoles(ctx.req.accessToken.userId.toString(), ["$admin"], ctx.req, function (err, isInRoles) {
+        if (err) return finalCb(err);
+        else if (isInRoles.none) applyLimit(ctx, DEFAULT_MAX_LIMIT);
+        else applyLimit(ctx, ADMIN_MAX_LIMIT);
+        return finalCb();
+    });
 }
 
 function applyLimit(ctx, limit) {
